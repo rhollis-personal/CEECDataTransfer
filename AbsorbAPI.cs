@@ -44,7 +44,6 @@ namespace CeecDataTransfer
                 throw;
             }
         }
-
         public bool ExpiredToken()
         {
             DateTime expirationDate;
@@ -99,7 +98,7 @@ namespace CeecDataTransfer
         }
         public static string CreateUser(NewEmployee Employee, string token)
         {
-            string jsonString = string.Empty;
+            string jsonString;
             try
             {
                 string UrlDomain = ConfigurationManager.AppSettings["AbsorbUrlDomain"];
@@ -182,7 +181,7 @@ namespace CeecDataTransfer
         }
         public static string UpdateUser(LMSEmployees Employee, string token)
         {
-            string jsonString = string.Empty;
+            string jsonString;
             
             try
             {

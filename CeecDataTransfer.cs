@@ -46,9 +46,8 @@
             List<Scheduler> Scheduler = new List<Scheduler>();
             Scheduler = Carollo.GetApplicationScheduler();
 
-            if (Scheduler.Count > 0)
-            {
-                //Carollo.WriteToLog("Starting course processing at " + DateTime.Now.ToString("HH:mm:ss"), MessageType.Text, "System", ActionType.SetUpLog.ToString(), true, DateTime.Now, "");
+            if (Scheduler.Count > 0)            {
+               
                 Carollo.GetEmployeeDataToAbsorb();
 
                 foreach (var scheduler in Scheduler)

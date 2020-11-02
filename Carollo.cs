@@ -609,9 +609,8 @@ namespace CeecDataTransfer
                 
                 }
             }
-            catch (Exception e)
-            {
-                var test = e;
+            catch
+            {                
                 throw;
             }
             return list;
@@ -690,7 +689,7 @@ namespace CeecDataTransfer
 
             foreach (RVCourseActivity course in rvCourses)
             {
-                Double credits = 0;
+                Double credits;
                 var result = Double.TryParse(course.CourseHours, out credits);
 
                 course.CourseItemNumber = course.CourseItemNumber.ToUpper();
@@ -969,8 +968,8 @@ namespace CeecDataTransfer
             string CurrentLevel = "";
             string PrimaryReviewerName = "";
 
-            string LMSCurrentLevel = "";
-            string LMSPrimaryReviewerName = "";
+            string LMSCurrentLevel;
+            string LMSPrimaryReviewerName;
 
             if (currentEmployeeCDPs !=null)
             {
@@ -1342,7 +1341,7 @@ namespace CeecDataTransfer
 
             string CurrentLevel = null;
             string PrimaryReviewerName = null;
-            string Track = null;
+            string Track;
 
             string Degree = null;
             string OrgGroupCode = null;
@@ -1435,7 +1434,7 @@ namespace CeecDataTransfer
 
             string CurrentLevel = null;
             string PrimaryReviewerName = null;
-            string Track = null;
+            string Track;
 
             string Degree = null;
             string OrgGroupCode = null;
