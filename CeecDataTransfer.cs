@@ -28,7 +28,7 @@
             var _pollingIntervalMinutes = 0;
             var result = int.TryParse(_pollingInterval, out _pollingIntervalMinutes);
             var _timer = new Timer(60 * 1000 * _pollingIntervalMinutes);  // 1 minute expressed as milliseconds
-            _timer.Elapsed += new ElapsedEventHandler(test);
+            _timer.Elapsed += new ElapsedEventHandler(RunService);
             _timer.AutoReset = true;
             _timer.Start();
             System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
@@ -39,14 +39,15 @@
             // TODO: Add code here to perform any tear-down necessary to stop your service.
         }
 
-        private void test(object sender, ElapsedEventArgs e)
+        private void RunService(object sender, ElapsedEventArgs e)
         {
             Carollo.WriteToLog("Starting course processing at " + DateTime.Now.ToString("HH:mm:ss"), MessageType.Text, "System", ActionType.SetUpLog.ToString(), true, DateTime.Now, "");
 
             List<Scheduler> Scheduler = new List<Scheduler>();
             Scheduler = Carollo.GetApplicationScheduler();
 
-            if (Scheduler.Count > 0)            {
+            if (Scheduler.Count > 0)            
+            {
                
                 Carollo.GetEmployeeDataToAbsorb();
 

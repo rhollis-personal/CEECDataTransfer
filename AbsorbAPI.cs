@@ -96,6 +96,41 @@ namespace CeecDataTransfer
 
             return response;
         }
+        public static List<LMSEmployees> GetUsers(string token)
+        {
+            var result = new List<LMSEmployees>();
+            string UrlDomain = ConfigurationManager.AppSettings["AbsorbUrlDomain"];
+            string Url = UrlDomain + "Users";
+
+            HttpWebRequest request = WebRequest.Create(Url) as HttpWebRequest;
+            request.Method = "GET";
+            request.ContentType = "application/json";
+            request.Headers.Add("Authorization", token);
+            request.Timeout = 60000; // 30 seconds
+
+            try
+            {
+                string json = "";
+
+                // Get response  
+                //var myWebResponse = request.GetResponse() as HttpWebResponse;
+                HttpWebResponse myWebResponse = GetResponse(request);
+
+                // Get the response stream and Deserialize to Employee
+                using (StreamReader reader = new StreamReader(myWebResponse.GetResponseStream()))
+                {
+                    json = reader.ReadToEnd();
+                    result = JsonConvert.DeserializeObject<List<LMSEmployees>>(json);
+                };
+
+                return result;
+            }
+            catch (Exception e)
+            {
+                Carollo.WriteToLog("Error at AbsorbAPI.GetUsers: " + e.Message + Environment.NewLine + e.InnerException + Environment.NewLine + e.StackTrace, MessageType.Text, "System", ActionType.WriteToLogError.ToString(), true, DateTime.Now, "");
+                throw;
+            }
+        }
         public static string CreateUser(NewEmployee Employee, string token)
         {
             string jsonString;
@@ -152,8 +187,9 @@ namespace CeecDataTransfer
                 request.Headers.Add("Authorization", token);
                 request.UserAgent = "Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)";
                 request.Timeout = 30000; // 30 seconds
+                request.ContentLength = 0;
 
-                string json = "";
+                string json;
 
                 // Get response  
                 //var myWebResponse = request.GetResponse() as HttpWebResponse;
@@ -181,8 +217,8 @@ namespace CeecDataTransfer
         }
         public static string UpdateUser(LMSEmployees Employee, string token)
         {
-            string jsonString;
-            
+            string jsonString;           
+
             try
             {
                 string UrlDomain = ConfigurationManager.AppSettings["AbsorbUrlDomain"];
@@ -194,6 +230,7 @@ namespace CeecDataTransfer
                 request.Headers.Add("Authorization", token);
                 request.UserAgent = "Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)";
                 request.Timeout = 30000; // 30 seconds
+                request.ContentLength = 0;
 
                 var javaScriptSerializer = new JavaScriptSerializer();
                 jsonString = javaScriptSerializer.Serialize(Employee);
@@ -285,42 +322,7 @@ namespace CeecDataTransfer
                 Carollo.WriteToLog("Error at AbsorbAPI.GetCustomFieldMapping: " + e.Message + Environment.NewLine + e.InnerException + Environment.NewLine + e.StackTrace, MessageType.Text, "System", ActionType.WriteToLogError.ToString(), true, DateTime.Now, "");
                 throw;
             }
-        }
-        public static List<LMSEmployees> GetUsers(string token)
-        {
-            var result = new List<LMSEmployees>();
-            string UrlDomain = ConfigurationManager.AppSettings["AbsorbUrlDomain"];
-            string Url = UrlDomain + "Users";
-
-            HttpWebRequest request = WebRequest.Create(Url) as HttpWebRequest;
-            request.Method = "GET";
-            request.ContentType = "application/json";
-            request.Headers.Add("Authorization", token);
-            request.Timeout = 60000; // 30 seconds
-
-            try
-            {                
-                string json = "";
-
-                // Get response  
-                //var myWebResponse = request.GetResponse() as HttpWebResponse;
-                HttpWebResponse myWebResponse = GetResponse(request);
-
-                // Get the response stream and Deserialize to Employee
-                using (StreamReader reader = new StreamReader(myWebResponse.GetResponseStream()))
-                {
-                    json = reader.ReadToEnd();
-                    result = JsonConvert.DeserializeObject<List<LMSEmployees>>(json);
-                };
-
-                return result;
-            }
-            catch (Exception e)
-            {
-                Carollo.WriteToLog("Error at AbsorbAPI.GetUsers: " + e.Message + Environment.NewLine + e.InnerException + Environment.NewLine + e.StackTrace, MessageType.Text, "System", ActionType.WriteToLogError.ToString(), true, DateTime.Now, "");
-                throw;
-            }
-        }
+        }       
         public static List<Curriculum> GetCurriculums(string token)
         {
             var result = new List<Curriculum>();
@@ -332,10 +334,11 @@ namespace CeecDataTransfer
             request.ContentType = "application/json";
             request.Headers.Add("Authorization", token);
             request.Timeout = 30000; // 30 seconds
+            request.ContentLength = 0;
 
             try
             {
-                string json = "";
+                string json;
 
                 // Get response  
                 //var myWebResponse = request.GetResponse() as HttpWebResponse;
@@ -367,10 +370,10 @@ namespace CeecDataTransfer
             request.ContentType = "application/json";
             request.Headers.Add("Authorization", token);
             request.Timeout = 30000; // 30 seconds
-
+            request.ContentLength = 0;
             try
             {
-                string json = "";
+                string json;
 
                 // Get response                   
                 //var myWebResponse = request.GetResponse() as HttpWebResponse;
@@ -413,7 +416,7 @@ namespace CeecDataTransfer
 
             try
             {
-                string json = "";
+                string json;
 
                 // Get response                  
                 //var myWebResponse = request.GetResponse() as HttpWebResponse;
@@ -445,10 +448,11 @@ namespace CeecDataTransfer
             request.ContentType = "application/json";
             request.Headers.Add("Authorization", token);
             request.Timeout = 30000; // 30 seconds
+            request.ContentLength = 0;
 
             try
             {
-                string json = "";
+                string json;
 
                 // Get response  
                 //var myWebResponse = request.GetResponse() as HttpWebResponse;
@@ -471,7 +475,7 @@ namespace CeecDataTransfer
         }
         public static string UpdateEnrollmentCourse(string token, Guid UserId, CourseEnrollment CourseEnrollmentEmployee)
         {
-            string jsonString = string.Empty;
+            string jsonString;
             try
             {
                 string UrlDomain = ConfigurationManager.AppSettings["AbsorbUrlDomain"];
