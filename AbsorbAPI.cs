@@ -229,8 +229,7 @@ namespace CeecDataTransfer
                 request.ContentType = " text/json";
                 request.Headers.Add("Authorization", token);
                 request.UserAgent = "Mozilla/4.0 (compatible; MSIE 5.01; Windows NT 5.0)";
-                request.Timeout = 30000; // 30 seconds
-                request.ContentLength = 0;
+                request.Timeout = 30000; // 30 seconds                
 
                 var javaScriptSerializer = new JavaScriptSerializer();
                 jsonString = javaScriptSerializer.Serialize(Employee);

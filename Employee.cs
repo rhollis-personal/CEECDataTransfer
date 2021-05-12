@@ -12,7 +12,7 @@ namespace CeecDataTransfer
         public string UserName { get; set; }
         public string Password { get; set; }
         public string EmailAddress { get; set; }
-        public int LanguageId { get; set; }
+        public int? LanguageId { get; set; }
         public int Gender { get; set; }
         public string Address { get; set; }
         public string Addrss2 { get; set; }
@@ -46,7 +46,7 @@ namespace CeecDataTransfer
         public string LastName { get; set; }
         public string UserName { get; set; }
         public string EmailAddress { get; set; }
-        public int LanguageId { get; set; }
+        public int? LanguageId { get; set; }
         public int Gender { get; set; }
         public string Address { get; set; }
         public string Addrss2 { get; set; }
