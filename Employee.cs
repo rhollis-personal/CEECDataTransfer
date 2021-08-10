@@ -30,9 +30,9 @@ namespace CeecDataTransfer
         public string Notes { get; set; }
         public CustomFields CustomFields { get; set; }
         public int ActiveStatus { get; set; }
-        public bool isLearner { get; set; }
-        public bool isAdmin { get; set; }
-        public bool isInstructor { get; set; }
+        public bool IsLearner { get; set; }
+        public bool IsAdmin { get; set; }
+        public bool IsInstructor { get; set; }
         public string ExternalId { get; set; }
         public Guid? SupervisorId { get; set; }       
     }
@@ -65,9 +65,9 @@ namespace CeecDataTransfer
         public CustomFields CustomFields { get; set; }
         public List<string> RoleIds { get; set; }
         public int ActiveStatus { get; set; }
-        public bool isLearner { get; set; }
-        public bool isAdmin { get; set; }
-        public bool isInstructor { get; set; }
+        public bool IsLearner { get; set; }
+        public bool IsAdmin { get; set; }
+        public bool IsInstructor { get; set; }
         public string ExternalId { get; set; }
         public Guid? SupervisorId { get; set; }      
     }
@@ -118,9 +118,7 @@ namespace CeecDataTransfer
 
     public class CDP
     {
-        public int EmployeeID { get; set; }
-        //public string Track { get; set; }
-        public string PrimaryReviewerName { get; set; }
+        public int EmployeeID { get; set; }       
         public string CurrentLevel { get; set; }
     }
 

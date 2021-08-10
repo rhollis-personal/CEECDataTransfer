@@ -12,9 +12,7 @@ namespace CeecDataTransfer
     {       
         private const string CTECConnection = "CTECConnection";
         private const string ActivityConnection = "ActivityConnection";
-        private const string DisciplineName = "ExceptionDisplineArea";
-        private const string ArchivedCDPTables = "ArchivedCDPTables";
-        private const string ArchivedConfigYear = "ArchivedConfigYear";
+        private const string DisciplineName = "ExceptionDisplineArea";        
         public const string ABSORB_LMS = "Absorb LMS";
 
         public enum ProcessActions
@@ -116,7 +114,38 @@ namespace CeecDataTransfer
             {
                 Email.SendErrors(Message, Application);
             }
-            InsertActivity(Message, Type, Application, Action, IsNotify, startDate);
+            InsertActivity(Message, Type, Application, Action, IsNotify, startDate, Vendor);
+        }
+        private static void InsertActivity(string Message, MessageType Type, string Application, string Action, bool IsNotify, DateTime startDate, string Vendor)
+        {
+
+            using (SqlConnection conn = new SqlConnection(ReadConfigFile(ActivityConnection)))
+            {
+                SqlCommand command = new SqlCommand("asp_InsertApplicationActivity", conn);
+                conn.Open();
+
+                try
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    command.Parameters.Add("@ApplicationId", SqlDbType.Int).Value = 3;
+                    command.Parameters.Add("@ActionId", SqlDbType.Int).Value = 0;
+                    command.Parameters.Add("@MessageType", SqlDbType.Int).Value = Type;
+                    command.Parameters.Add("@Message", SqlDbType.NVarChar).Value = Message;
+                    command.Parameters.Add("@IsNotify", SqlDbType.Bit).Value = Convert.ToInt32(IsNotify);
+                    command.Parameters.Add("@ApplicationName", SqlDbType.NVarChar).Value = Application;
+                    command.Parameters.Add("@ActionName", SqlDbType.NVarChar).Value = Action;
+                    command.Parameters.Add("@StartDate", SqlDbType.DateTime).Value = startDate;                    
+                    command.Parameters.Add("@Vendor", SqlDbType.NVarChar).Value = Vendor;
+
+                    command.ExecuteReader();
+                }
+                catch (Exception e)
+                {
+                    Config.LogError(e);
+                }
+            }
+
         }
         public static void WriteToLog(string Message, MessageType Type, string Application, string Action, bool IsNotify, DateTime startDate)
         {
@@ -435,19 +464,9 @@ namespace CeecDataTransfer
             using (SqlConnection conn = new SqlConnection(ReadConfigFile(ActivityConnection)))
             {
                 var command = new SqlCommand();
-                
-                // Check to see which CDP tables to pull data from
-                var IsUseArchived = Convert.ToBoolean(ReadConfigFile(ArchivedCDPTables));
-                var CDPYear =  Convert.ToInt16(ReadConfigFile(ArchivedConfigYear));
-
-                if (!(IsUseArchived)){
-                    command = new SqlCommand("asp_GetCDPEmployees", conn);
-                }
-                else{
-                    command = new SqlCommand("asp_GetCDPEmployeesArchived", conn);
-                    command.Parameters.Add("@CDPYear", SqlDbType.Int).Value = CDPYear;
-                }
-                    
+               
+                command = new SqlCommand("asp_GetCDPEmployees", conn);
+               
                 conn.Open();
 
                 try
@@ -594,7 +613,7 @@ namespace CeecDataTransfer
             List<T> list = new List<T>();
             try
             {
-                T obj = default(T);
+                T obj = default;
                 while (dr.Read())
                 {
                     obj = Activator.CreateInstance<T>();
@@ -632,15 +651,7 @@ namespace CeecDataTransfer
 
                 case DisciplineName:
                     input = ConfigurationManager.AppSettings["ExceptionDisplineArea"].ToString();
-                    break;
-
-                case ArchivedCDPTables:
-                    input = ConfigurationManager.AppSettings["ArchivedCDPTables"].ToString();
-                    break;
-
-                case ArchivedConfigYear:
-                    input = ConfigurationManager.AppSettings["ArchivedConfigYear"].ToString();
-                    break;
+                    break;                
             }
             
             return input;
@@ -689,8 +700,7 @@ namespace CeecDataTransfer
 
             foreach (RVCourseActivity course in rvCourses)
             {
-                Double credits;
-                var result = Double.TryParse(course.CourseHours, out credits);
+                _ = Double.TryParse(course.CourseHours, out double credits);
 
                 course.CourseItemNumber = course.CourseItemNumber.ToUpper();
                 if (!course.CourseItemNumber.StartsWith("RV-"))
@@ -877,8 +887,10 @@ namespace CeecDataTransfer
 
                         numberOfEmployeesReviewed++;
                     }
-
-                    Carollo.WriteToLog("Employees Data to Absorb results: Employees Reviewed=" + numberOfEmployeesReviewed + " Employees New=" + numberOfEmployeesAdd + " Employees Upated=" + numberOfEmployeesUpdate + " Employees Skipped=" + numberOfEmployeesSkip, MessageType.Text, ABSORB_LMS, ActionType.ExecuteCompleted.ToString(), true, startDate, "HCM_TO_ABSORB");
+                    if(numberOfEmployeesAdd>0 || numberOfEmployeesUpdate>0)
+                    {
+                        Carollo.WriteToLog("Employees Data to Absorb results: Employees Reviewed=" + numberOfEmployeesReviewed + " Employees New=" + numberOfEmployeesAdd + " Employees Upated=" + numberOfEmployeesUpdate + " Employees Skipped=" + numberOfEmployeesSkip, MessageType.Text, ABSORB_LMS, ActionType.ExecuteCompleted.ToString(), true, startDate, "HCM_TO_ABSORB");
+                    }
                 }
                 else
                 {
@@ -965,31 +977,24 @@ namespace CeecDataTransfer
         }
         private static string CompareCDPs(ref ProcessActions action, LMSEmployees currentLMSEmployee, CDP currentEmployeeCDPs)
         {
-            string CurrentLevel = "";
-            string PrimaryReviewerName = "";
+            string CurrentLevel = "";            
 
-            string LMSCurrentLevel;
-            string LMSPrimaryReviewerName;
+            string LMSCurrentLevel;           
 
             if (currentEmployeeCDPs !=null)
             {
-                CurrentLevel = ToStr(currentEmployeeCDPs.CurrentLevel);
-                PrimaryReviewerName = ToStr(currentEmployeeCDPs.PrimaryReviewerName);
+                CurrentLevel = ToStr(currentEmployeeCDPs.CurrentLevel);                
             }
 
-            LMSCurrentLevel = ToStr(currentLMSEmployee.CustomFields.String15);
-            LMSPrimaryReviewerName = ToStr(currentLMSEmployee.CustomFields.String16);
+            LMSCurrentLevel = ToStr(currentLMSEmployee.CustomFields.String15);            
 
-            if (LMSCurrentLevel != CurrentLevel || LMSPrimaryReviewerName != PrimaryReviewerName)
+            if (LMSCurrentLevel != CurrentLevel)
                 action = ProcessActions.Update;
 
             string changes = "";
             if (LMSCurrentLevel != CurrentLevel)
                 changes = "Level: " + LMSCurrentLevel + " vs " + CurrentLevel + Environment.NewLine;
-
-            if (LMSPrimaryReviewerName != PrimaryReviewerName)
-                changes += "Reviewer: " + LMSPrimaryReviewerName + " vs " + PrimaryReviewerName + Environment.NewLine;
-
+            
             return changes;
         }
         private static string CompareOrganizationGroups(ref ProcessActions action, LMSEmployees currentLMSEmployee, OrganizationGroups currentEmployeeOrganizationGroups)
@@ -1186,7 +1191,7 @@ namespace CeecDataTransfer
                 {
                     string currentCertification = arrayOfCertification[i];
                     int currentCharCount = arrayOfCertification[i].Length;
-                    totalCharCount = totalCharCount + currentCharCount;
+                    totalCharCount += currentCharCount;
 
                     BuildCertifications(ref currentCertCount, ref totalCharCount, ref interation, ref arrCertifications1, ref arrCertifications2, ref arrCertifications3, currentCertification);
                 }
@@ -1354,9 +1359,7 @@ namespace CeecDataTransfer
 
             if (currentEmployeeCDPs != null)
             {
-                CurrentLevel = currentEmployeeCDPs.CurrentLevel;
-                PrimaryReviewerName = currentEmployeeCDPs.PrimaryReviewerName;
-                //Track = currentEmployeeCDPs.Track;
+                CurrentLevel = currentEmployeeCDPs.CurrentLevel;                
             }
 
             Track = HCMEmployee.Track;
@@ -1388,9 +1391,9 @@ namespace CeecDataTransfer
                 ActiveStatus = Convert.ToInt16(HCMEmployee.ActiveStatus),
                 DepartmentId = DepartmentId,
                 ExternalId = HCMEmployee.EmployeeID,
-                isAdmin = false,
-                isInstructor = false,
-                isLearner = true,
+                IsAdmin = false,
+                IsInstructor = false,
+                IsLearner = true,
                 LanguageId = 1,
                 EmployeeNumber = HCMEmployee.EmployeeID,
                 Location = HCMEmployee.DivisionCode,
@@ -1449,8 +1452,7 @@ namespace CeecDataTransfer
 
             if (currentEmployeeCDPs != null)
             {
-                CurrentLevel = currentEmployeeCDPs.CurrentLevel;
-                PrimaryReviewerName = currentEmployeeCDPs.PrimaryReviewerName;
+                CurrentLevel = currentEmployeeCDPs.CurrentLevel;                
             }
 
             Track = HCMEmployee.Track;
@@ -1485,9 +1487,9 @@ namespace CeecDataTransfer
                 ActiveStatus = Convert.ToInt16(HCMEmployee.ActiveStatus),
                 DepartmentId = DepartmentId,
                 ExternalId = HCMEmployee.EmployeeID,
-                isAdmin = LMSEmployee.isAdmin,
-                isInstructor = LMSEmployee.isInstructor,
-                isLearner = LMSEmployee.isLearner,
+                IsAdmin = LMSEmployee.IsAdmin,
+                IsInstructor = LMSEmployee.IsInstructor,
+                IsLearner = LMSEmployee.IsLearner,
                 LanguageId = 1,
                 EmployeeNumber = HCMEmployee.EmployeeID,
                 Location = HCMEmployee.DivisionCode,

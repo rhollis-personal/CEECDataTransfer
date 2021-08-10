@@ -25,8 +25,7 @@
         protected override void OnStart(string[] args)
         {
             var _pollingInterval = ConfigurationManager.AppSettings["PollingIntervalInMinutes"];
-            var _pollingIntervalMinutes = 0;
-            var result = int.TryParse(_pollingInterval, out _pollingIntervalMinutes);
+            var result = int.TryParse(_pollingInterval, out int _pollingIntervalMinutes);
             var _timer = new Timer(60 * 1000 * _pollingIntervalMinutes);  // 1 minute expressed as milliseconds
             _timer.Elapsed += new ElapsedEventHandler(RunService);
             _timer.AutoReset = true;
@@ -43,13 +42,16 @@
         {
             Carollo.WriteToLog("Starting course processing at " + DateTime.Now.ToString("HH:mm:ss"), MessageType.Text, "System", ActionType.SetUpLog.ToString(), true, DateTime.Now, "");
 
-            List<Scheduler> Scheduler = new List<Scheduler>();
-            Scheduler = Carollo.GetApplicationScheduler();
+            //  This will run during every interval pull.
+            //  It is designed to pick up any new people or changes so that the employees can access content as quickly as possible.
+            Carollo.GetEmployeeDataToAbsorb();
 
-            if (Scheduler.Count > 0)            
+            //Check to see if any of the other applications are scheuled to run 
+            _ = new List<Scheduler>();
+            List<Scheduler> Scheduler = Carollo.GetApplicationScheduler();
+
+            if (Scheduler.Count > 0)          
             {
-               
-                Carollo.GetEmployeeDataToAbsorb();
 
                 foreach (var scheduler in Scheduler)
                 {
@@ -120,6 +122,7 @@
                     //Carollo.WriteToLog("Finished course processing at " + DateTime.Now.ToString("HH:mm:ss"), MessageType.Text, "System", ActionType.SetUpLog.ToString(), true, DateTime.Now, "");
                 }
             }
+
             Carollo.WriteToLog("Finished course processing at " + DateTime.Now.ToString("HH:mm:ss"), MessageType.Text, "System", ActionType.SetUpLog.ToString(), true, DateTime.Now, "");
         }
     }
